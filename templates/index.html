@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>공기청정기 정보</title>
+  <link rel="stylesheet" href="{{url_for('static',filename='index.css')}}">
+  <script src="https://kit.fontawesome.com/e08131f43f.js" crossorigin="anonymous"></script>
+</head>
+
+<body onload="update_dust();">
+  <div class="content">
+    <nav role="navigation"><!-- 상단 타이틀 및 좌측 네비게이션 바 -->
+      <a href="{{ url_for('index') }}" class="logo"><div class="logo-box"><h1>공기청정기</h1></div></a>
+      <div id="menuToggle">
+        <input type="checkbox" />
+          <span></span>
+          <span></span>
+          <span></span>
+        <ul id="menu">
+          <li><a href="{{ url_for('index') }}">정보</a></li>
+          <li><a href="{{ url_for('graph') }}">그래프</a></li>
+          <li><a href="#">앱 다운로드</a></li>
+          <li><a href="#">작품 소개 및 발표자료</a></li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+
+  <main>
+    <div class="sw">
+      <div id="swtext">전원</div><!-- 전원 스위치 -->
+      <input type="checkbox" id="switch1" name="switch1" class="input__on-off" onclick="powerctrl()">
+      <label for="switch1" class="label__on-off">
+        <span class="marble"></span>
+        <span class="on">on</span>
+        <span class="off">off</span>
+      </label>
+    </div>
+    
+    <a href="{{ url_for('dustinfo') }}">
+    <div class="dust">
+      <div id="dustname"> 현재 미세먼지 농도</div><!-- 상태별 먼지농도 이모티콘 표시 -->
+      <i class="far fa-smile" id="good"></i>
+      <i class="far fa-meh" id="normal"></i>
+      <i class="far fa-frown-open" id="bad"></i>
+      <i class="far fa-tired" id="verybad"></i>
+      <div id="dustvalue"> <span id="duststate">알수없음</span></div>
+    </div>
+    </a>
+
+    <div class="sw"><!-- 자동모드 스위치 -->
+      <div id="swtext">자동모드</div>
+      <input type="checkbox" id="switch2" name="switch2" class="input__on-off" onclick="autoctrl()">
+      <label for="switch2" class="label__on-off" id="sw2lb">
+        <span class="marble"></span>
+        <span class="on">on</span>
+        <span class="off">off</span>
+      </label>
+    </div>
+    <div class="sw" onclick="location.href='/fan_speed'"><!-- 풍량조절 스위치 -->
+      <div id="swtext">바람세기</div>
+      <div style="display: inline-block;" id="speedsel"><span id="fan_speed">알수없음</span><i class="fas fa-chevron-right" style="font-size: 23pt; margin-left: 15px;"></i></div>
+    </div>
+  </main>
+
+  <script src="{{url_for('static', filename = 'jquery.min.js')}}"></script>
+  <script type=text/javascript src="{{url_for('static', filename = 'index.js')}}"></script>
+</body>
+</html>

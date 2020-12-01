@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>공기청정기 그래프</title>
+  <link rel="stylesheet" href="{{url_for('static',filename='index.css')}}">
+</head>
+<body>
+  <div class="content">
+    <nav role="navigation"> <!-- 상단 타이틀 및 좌측 네비게이션 바 -->
+      <a href="{{ url_for('index') }}" class="logo"><div class="logo-box"><h1>공기청정기</h1></div></a>
+      <div id="menuToggle">
+        <input type="checkbox" />
+          <span></span>
+          <span></span>
+          <span></span>
+        <ul id="menu">
+          <li><a href="{{ url_for('index') }}">정보</a></li>
+          <li><a href="{{ url_for('graph') }}">그래프</a></li>
+          <li><a href="#">앱 다운로드</a></li>
+          <li><a href="#">작품 소개 및 발표자료</a></li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+  <main class="main-content"><!-- canvas태그로 그래프 위치 지정, div로 여백 지정 -->
+    <div style="margin: 15px 15px;"><canvas id="hours_graph" width="300" height="300"></canvas></div>
+    <div style="margin: 15px 15px;"><canvas id="days_graph" width="300" height="300"></canvas></div>
+  </main>
+
+  <script src="{{url_for('static', filename = 'jquery.min.js')}}"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js" integrity="sha512-d9xgZrVZpmmQlfonhQUvTR7lMPtO7NkZMkA0ABN3PHCbKA5nqylQ/yWlFAyY6hYgdF1Qh6nYiuADWwKB4C2WSw==" crossorigin="anonymous"></script>
+  <script>
+    // 24시간, 시간별 그래프
+    $.ajax({ //js로드시 실행
+    method : "GET",
+    url    : '/hours_graph',
+    dataType: "json",
+    
+    success: function(data){ //ajax 통신이 되면 그래프 그리기
+      new Chart(document.getElementById("hours_graph"), {
+        type: 'line',
+        data: { labels   : [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24],
+                datasets : [{
+                  label: 'PM1.0',
+                  data: Object.values(data.pm1),
+                  fill : false,
+                  borderColor : 'rgba(10, 190, 214, 0.5)',
+                  backgroundColor : 'rgba(10, 190, 214, 0.5)'
+                },{
+                  label: 'PM2.5',
+                  data: Object.values(data.pm25),
+                  fill : false,
+                  borderColor : 'rgba(223, 239, 11, 0.5)',
+                  backgroundColor : 'rgba(223, 239, 11, 0.5)'
+                },{
+                  label: 'PM10',
+                  data: Object.values(data.pm10),
+                  fill : false,
+                  borderColor : 'rgba(63, 246, 60, 0.5)',
+                  backgroundColor : 'rgba(63, 246, 60, 0.5)'
+                }]
+        },
+        options : {
+          title : { //차트 제목
+            display : true,
+            text    : "최근 24시간",
+            fontSize : 20 },
+          scales: {
+            xAxes: [{ //x축 제목
+              scaleLabel: {
+                display: true,
+                labelString: '시간전',
+                fontSize : 15
+              }
+            }],
+            yAxes: [{ //y축 제목
+              scaleLabel: {
+                display: true,
+                labelString: 'μg/m³',
+                fontSize : 15
+              }
+            }]
+        }
+        } } ); },
+    
+    error: function(error_data){
+      alert("공기청정기와의 연결이 원활하지 않습니다. 새로고침하거나 공기청정기의 전원플러그를 재연결후 시도해주세요.")
+      console.log("ajax error")
+      console.log(error_data) } 
+  } )
+    //일주일, 일별그래프
+    $.ajax({ //js로드시 실행
+    method : "GET",
+    url    : '/days_graph',
+    dataType: "json",
+    
+    success: function(data){ //ajax 통신이 되면 그래프 그리기
+      new Chart(document.getElementById("days_graph"), {
+        type: 'line',
+        data: { labels   : ["오늘",1,2,3,4,5,6,7],
+                datasets : [{
+                  label: 'PM1.0',
+                  data: Object.values(data.pm1),
+                  fill : false,
+                  borderColor : 'rgba(10, 190, 214, 0.5)',
+                  backgroundColor : 'rgba(10, 190, 214, 0.5)'
+                },{
+                  label: 'PM2.5',
+                  data: Object.values(data.pm25),
+                  fill : false,
+                  borderColor : 'rgba(223, 239, 11, 0.5)',
+                  backgroundColor : 'rgba(223, 239, 11, 0.5)'
+                },{
+                  label: 'PM10',
+                  data: Object.values(data.pm10),
+                  fill : false,
+                  borderColor : 'rgba(63, 246, 60, 0.5)',
+                  backgroundColor : 'rgba(63, 246, 60, 0.5)'
+                }]
+        },
+        options : {
+          title : { //차트 제목
+            display : true,
+            text    : "최근 일주일",
+            fontSize : 20
+          },
+            scales: {
+              xAxes: [{ //x축 제목
+                scaleLabel: {
+                  display: true,
+                  labelString: '일전',
+                  fontSize : 15
+                }
+              }],
+              yAxes: [{ //y축 제목
+                scaleLabel: {
+                  display: true,
+                  labelString: 'μg/m³',
+                  fontSize : 15
+                }
+              }]
+            }
+        } } ); },
+    
+    error: function(error_data){
+      alert("공기청정기와의 연결이 원활하지 않습니다. 새로고침하거나 공기청정기의 전원플러그를 재연결후 시도해주세요.")
+      console.log("ajax error")
+      console.log(error_data) } 
+  } )
+    </script>
+</body>
+</html>
