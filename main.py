@@ -8,7 +8,7 @@ from PMS7003 import PMS7003
 import lcd_i2c as lcd
 from configparser import ConfigParser
 import pymysql
-
+import requests
 
 # 핀 설정
 powersw = Button(24) # 전원버튼
