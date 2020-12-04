@@ -138,28 +138,38 @@ def fan_power(state):
 
 # lcd에 먼지농도 표시, 매개변수로 pm1, pm25, pm10변수를 전달받음
 def display_dust(duststate1, duststate2, duststate3):
+    global power_state, fan_state
     # 좋음
     if duststate3 <= 30 and (duststate1 + duststate2) <= 15 :
         lcd.lcd_string("     GOOD      ", lcd.LCD_LINE_1)
         led.color = Color("blue") # led 색 지정 파랑
+        if power_state == 2: #자동모드 팬 속도 30%
+            fan_power(OFF)
+            
     # 보통
     elif  duststate3 <= 80 and (duststate1 + duststate2) <= 35:
         lcd.lcd_string("     NORMAL    ", lcd.LCD_LINE_1)
         led.color = Color("green") # led 색 지정 초록
         if power_state == 2: #자동모드 팬 속도 30%
+            fan_power(ON)
             fan_pwm.value = 0.3
+            fan_state = "SLOW"
     # 나쁨
     elif duststate3 <= 150 and (duststate1 + duststate2) <= 75:
         lcd.lcd_string("      BAD      ", lcd.LCD_LINE_1)
         led.color = Color("yellow") # led 색 지정 노랑
         if power_state == 2:#자동모드 팬 속도 65%
+            fan_power(ON)
             fan_pwm.value = 0.65
+            fan_state = "MID"
     # 매우나쁨
     elif duststate3 > 150 or (duststate1 + duststate2) > 75:
         lcd.lcd_string("    VERY BAD   ", lcd.LCD_LINE_1)
         led.color = Color("red") # led 색 지정 빨강
         if power_state == 2: #자동모드 팬 속도 100%
+            fan_power(ON)
             fan_pwm.value = 1
+            fan_state = "FULL"
     else:
         print("LCD표기 오류 or 먼지센서 데이터 오류")
     
@@ -276,7 +286,6 @@ def loop():
             display_dust(pm1, pm25, pm10) #매개변수로 데이터 전달
         if power_state == 2:
             print("자동모드")
-            fan_power(ON) #팬 on
             led.on() #led on
             lcd.LCD_BACKLIGHT = 0x08 #lcd 백라이트 on
             lcd.lcd_string("   Auto Mode   ", lcd.LCD_LINE_1)
