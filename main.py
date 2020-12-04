@@ -9,6 +9,8 @@ import lcd_i2c as lcd
 from configparser import ConfigParser
 import pymysql
 import requests
+import json
+import datetime
 
 # 핀 설정
 powersw = Button(24) # 전원버튼
@@ -31,8 +33,8 @@ SERIAL_PORT = '/dev/ttyUSB0'
 # DB 연결
 dust_db = pymysql.connect(
     user='luvdduk', 
-    passwd='alrkd4535', 
-    host='127.0.0.1', 
+    passwd='qazwsxedc123', 
+    host='aircleaner.software', 
     db='air-cleaner', 
     charset='utf8'
 )
@@ -94,25 +96,35 @@ def powerctrl(): # 전원버튼 누를때마다 실행
 
 
 def fan_speedsw(): # 팬 스피드 조절, 팬속버튼 누를때마다 실행
-    global fan_state
+    global fan_state, power_state
     if power_state == 1: #일반모드, 전원켜짐 상태에서만 동작
         if fan_state == "SLOW": # 팬속도가 1단계일때 2단계로 변경
             fan_pwm.value = 0.65
             fan_state = "MID"
+            conf['FAN']['fan_speed'] = fan_state
+            with open('config.ini', 'w') as configfile:
+                conf.write(configfile)
             print("팬속도: %f"%fan_pwm.value)
             return
         if fan_state == "MID": # 팬속도가 2단계일때 3단계로 변경
             fan_pwm.value = 1
             fan_state = "FULL"
+            conf['FAN']['fan_speed'] = fan_state
+            with open('config.ini', 'w') as configfile:
+                conf.write(configfile)
             print("팬속도: %f"%fan_pwm.value)
             return
         if fan_state == "FULL": # 팬속도가 3단계일때 1단계로 변경
             fan_pwm.value = 0.3
             fan_state = "SLOW"
+            conf['FAN']['fan_speed'] = fan_state
+            with open('config.ini', 'w') as configfile:
+                conf.write(configfile)
             print("팬속도: %f"%fan_pwm.value)
             return
     else:
         print("일반모드에서만 동작")
+
 
 
 # 팬 on/off 제어
@@ -169,8 +181,9 @@ def display_dust(duststate1, duststate2, duststate3):
 
 # 메인루프
 def loop():
-    global power_state
+    global power_state, fan_state
     while True:
+
         # 먼지센서 동작
         ser = serial.Serial(SERIAL_PORT, Speed, timeout = 1)
         buffer = ser.read(1024)
@@ -182,8 +195,9 @@ def loop():
             pm25 = int(data[dustlib.DUST_PM2_5_ATM])
             pm10 = int(data[dustlib.DUST_PM10_0_ATM])
 
+            now = datetime.datetime.now()
             # db에 데이터 저장
-            cursor.execute("INSERT INTO status(powerstate, PM1, PM25, PM10) VALUES ('%d', '%d','%d','%d')"%(power_state, pm1, pm25, pm10))
+            cursor.execute("INSERT INTO status(timestamp, powerstate, PM1, PM25, PM10) VALUES ('%s', '%d', '%d','%d','%d')"%(now, power_state, pm1, pm25, pm10))
             dust_db.commit()
             print("====================")
             print ("PMS 7003 dust data")
@@ -193,7 +207,56 @@ def loop():
             print("====================")
         else:
             print ("먼지센서 데이터 read 오류")
+
+        # 서버통신 - 데이터 수신
+        try:
+            r_get_order = requests.get('http://aircleaner.software/senddata')
+            order = r_get_order.json()
+            print(order)
+        except :
+            print("#################")
+            print("리퀘스트 수신 에러")
+            print("#################")
         
+        if order['power_on'] == True:
+            power_state = 1
+        if order['power_off']:
+            power_state = 0
+        if order['auto_mode']:
+            power_state = 2
+        if order['fan_slow']:
+            fan_state = "SLOW"
+            fan_pwm.value = 0.3
+        if order['fan_mid']:
+            fan_state = "MID"
+            fan_pwm.value = 0.65
+        if order['fan_full']:
+            fan_state = "FULL"
+            fan_pwm.value = 1
+        
+        conf['FAN']['fan_speed'] = fan_state
+        with open('config.ini', 'w') as configfile:
+            conf.write(configfile)
+
+        send_data = {
+            'power_state':power_state,
+            'fan_state': fan_state,
+            'pm1' : pm1,
+            'pm25' : pm25,
+            'pm10' : pm10
+        }
+        # 서버통신 - 데이터 전송
+        send_data = json.dumps(send_data)
+        print(send_data)
+        try:
+            r_send_data = requests.post('http://aircleaner.software/receivedata', data = send_data )
+        except:
+            print("#################")
+            print("리퀘스트 전송 에러")
+            print("#################")
+
+
+
         # 전원 상태에 따른 동작
         if power_state == 0:
             print("전원꺼짐")
