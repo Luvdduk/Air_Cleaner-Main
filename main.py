@@ -210,15 +210,15 @@ def loop():
 
         # 서버통신 - 데이터 수신
         try:
-            r_get_order = requests.get('http://aircleaner.software/senddata')
-            order = r_get_order.json()
+            r_get_order = requests.get('http://aircleaner.software/senddata') #데이터 요청
+            order = r_get_order.json()# 데이터 json타입으로 저장
             print(order)
         except :
             print("#################")
             print("리퀘스트 수신 에러")
             print("#################")
         
-        if order['power_on'] == True:
+        if order['power_on'] == True: # 수신값 받아서 설정 변경
             power_state = 1
         if order['power_off']:
             power_state = 0
@@ -234,11 +234,11 @@ def loop():
             fan_state = "FULL"
             fan_pwm.value = 1
         
-        conf['FAN']['fan_speed'] = fan_state
+        conf['FAN']['fan_speed'] = fan_state # 팬 속도 저장
         with open('config.ini', 'w') as configfile:
             conf.write(configfile)
 
-        send_data = {
+        send_data = { #보낼 데이터
             'power_state':power_state,
             'fan_state': fan_state,
             'pm1' : pm1,
@@ -246,10 +246,10 @@ def loop():
             'pm10' : pm10
         }
         # 서버통신 - 데이터 전송
-        send_data = json.dumps(send_data)
+        send_data = json.dumps(send_data) # json타입으로 변경
         print(send_data)
         try:
-            r_send_data = requests.post('http://aircleaner.software/receivedata', data = send_data )
+            r_send_data = requests.post('http://aircleaner.software/receivedata', data = send_data ) #json을 post 방식으로 전송
         except:
             print("#################")
             print("리퀘스트 전송 에러")
