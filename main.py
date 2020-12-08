@@ -278,7 +278,7 @@ def loop():
         if power_state == 1:
             print("전원켜짐")
             fan_power(ON) #팬 on
-            led.on() #led on
+            # led.on() #led on
             lcd.LCD_BACKLIGHT = 0x08 #lcd 백라이트 on
             lcd.lcd_string("   Power On    ", lcd.LCD_LINE_1)
             lcd.lcd_string("", lcd.LCD_LINE_2)
@@ -286,7 +286,7 @@ def loop():
             display_dust(pm1, pm25, pm10) #매개변수로 데이터 전달
         if power_state == 2:
             print("자동모드")
-            led.on() #led on
+            # led.on() #led on
             lcd.LCD_BACKLIGHT = 0x08 #lcd 백라이트 on
             lcd.lcd_string("   Auto Mode   ", lcd.LCD_LINE_1)
             lcd.lcd_string("", lcd.LCD_LINE_2)
